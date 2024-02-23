@@ -1,11 +1,7 @@
-import re
 import json
+import re
 import xml.etree.ElementTree as ET
 from typing import Union
-import spacy
-
-# Load Spacy NLP model
-nlp = spacy.load("en_core_web_trf")
 
 
 class Scrub:
@@ -30,21 +26,11 @@ class Scrub:
 
                     # Remove parentheses from matched phone numbers
                     matched_phone = re.sub(r"^\((\d{3})\)$", r"\1", matched_phone)
-                    scrubbed_text = scrubbed_text.replace(matched_phone, "[REDACTED]")
+                    scrubbed_text = scrubbed_text.replace(matched_phone, "[REDACTED PHONE]")
             else:
-                scrubbed_text = re.sub(pattern, "[REDACTED]", scrubbed_text)
+                scrubbed_text = re.sub(pattern, f"[REDACTED {category.upper()}]", scrubbed_text)
 
-        scrubbed_text = self.scrub_pii_with_nlp(scrubbed_text)
         return scrubbed_text
-
-    def scrub_pii_with_nlp(self, text: str) -> str:
-        nlp_doc = nlp(text)
-        final_text = text
-
-        for name in nlp_doc.ents:
-            if name.label_ == "PERSON":
-                final_text = re.sub(re.escape(name.text), "[REDACTED]", final_text)
-        return final_text
 
     def scrub(
         self, input_data: Union[str, dict], original_format: str = "txt"
